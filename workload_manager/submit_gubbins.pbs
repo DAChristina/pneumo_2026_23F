@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -N gubbins_GPSC14
-#PBS -l walltime=72:00:00
-#PBS -l select=1:ncpus=32:mem=64gb
+#PBS -l walltime=24:00:00
+#PBS -l select=1:ncpus=16:mem=32gb
 
 
 source ~/anaconda3/etc/profile.d/conda.sh
@@ -15,16 +15,15 @@ OUTDIR="$WORKDIR/outputs/gubbins"
 mkdir -p "$FASTA_DIR" "$REF_DIR" "$OUTDIR"
 cd "$FASTA_DIR" || { echo "ERROR: cannot cd to $FASTA_DIR"; exit 1; }
 
-echo "Building gubbins_target.list..."
-for file in *.fasta; do
-  echo -e "${file%.fasta}\t${file}" done > "$OUTDIR/gubbins_target.list"
+
+for file in "$FASTA_DIR"/*.fasta; do
+  echo -e "$(basename ${file%.fasta})\t${file}"
+done > "$OUTDIR/gubbins_target.list"
 
 if [ ! -s "$OUTDIR/gubbins_target.list" ]; then
   echo "ERROR: gubbins_target.list is empty — no .fasta files found in $FASTA_DIR"
   exit 1
 fi
-
-echo "Found $(wc -l < "$OUTDIR/gubbins_target.list") isolates"
 
 # reference genome was personally downloaded
 # wget -q -O "$REF_DIR/Strep_ATCC700669_Ref.fasta" \
@@ -32,8 +31,8 @@ echo "Found $(wc -l < "$OUTDIR/gubbins_target.list") isolates"
 
 generate_ska_alignment.py \
   --reference "$REF_DIR/Strep_ATCC700669_Ref.fasta" \
-  --input     "$OUTDIR/gubbins_target.list" \
-  --out       "$OUTDIR/aligned_all_isolates.aln"
+  --input "$OUTDIR/gubbins_target.list" \
+  --out "$OUTDIR/aligned_all_isolates.aln"
 
 echo "Running Gubbins (will take a long time)"
 run_gubbins.py \
