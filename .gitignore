@@ -21,11 +21,9 @@ inst/web
 
 # Additional info I don't want to upload the data into gitHub
 raw_data/
-hipercow/
 renv/
 inputs/
 outputs/
-outputs_compiled/
 report/
 pictures/
 Rplots.pdf
