@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N gubbins_GPSC14
+#PBS -N just_gubbins_GPSC14
 #PBS -l walltime=72:00:00
 #PBS -l select=1:ncpus=16:mem=32gb
 
@@ -12,27 +12,27 @@ FASTA_DIR="$WORKDIR/raw_data/gubbins_input_gpsc14"
 REF_DIR="$WORKDIR/inputs"
 OUTDIR="$WORKDIR/outputs/gubbins"
 
-mkdir -p "$FASTA_DIR" "$REF_DIR" "$OUTDIR"
-cd "$FASTA_DIR" || { echo "ERROR: cannot cd to $FASTA_DIR"; exit 1; }
+#mkdir -p "$FASTA_DIR" "$REF_DIR" "$OUTDIR"
+#cd "$FASTA_DIR" || { echo "ERROR: cannot cd to $FASTA_DIR"; exit 1; }
 
 
-for file in "$FASTA_DIR"/*.fasta; do
-  echo -e "$(basename ${file%.fasta})\t${file}"
-done > "$OUTDIR/gubbins_target.list"
+#for file in "$FASTA_DIR"/*.fasta; do
+#  echo -e "$(basename ${file%.fasta})\t${file}"
+#done > "$OUTDIR/gubbins_target.list"
 
-if [ ! -s "$OUTDIR/gubbins_target.list" ]; then
-  echo "ERROR: gubbins_target.list is empty — no .fasta files found in $FASTA_DIR"
-  exit 1
-fi
+#if [ ! -s "$OUTDIR/gubbins_target.list" ]; then
+#  echo "ERROR: gubbins_target.list is empty — no .fasta files found in $FASTA_DIR"
+#  exit 1
+#fi
 
 # reference genome was personally downloaded
 # wget -q -O "$REF_DIR/Strep_ATCC700669_Ref.fasta" \
 #   "https://www.ebi.ac.uk/ena/browser/api/fasta/FM211187.1?download=true"
 
-generate_ska_alignment.py \
-  --reference "$REF_DIR/Strep_ATCC700669_Ref.fasta" \
-  --input "$OUTDIR/gubbins_target.list" \
-  --out "$OUTDIR/aligned_all_isolates.aln"
+#generate_ska_alignment.py \
+#  --reference "$REF_DIR/Strep_ATCC700669_Ref.fasta" \
+#  --input "$OUTDIR/gubbins_target.list" \
+#  --out "$OUTDIR/aligned_all_isolates.aln"
 
 echo "Running Gubbins (will take a long time)"
 run_gubbins.py \
