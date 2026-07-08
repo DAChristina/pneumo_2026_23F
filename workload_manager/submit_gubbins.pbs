@@ -30,7 +30,7 @@ fi
 #   "https://www.ebi.ac.uk/ena/browser/api/fasta/FM211187.1?download=true"
 
 generate_ska_alignment.py \
-  --reference "$REF_DIR/Strep_ATCC700669_Ref.fasta" \
+  --reference "$REF_DIR/GPSC14_reference.fasta" \
   --input "$OUTDIR/gubbins_target.list" \
   --out "$OUTDIR/aligned_all_isolates.aln"
 

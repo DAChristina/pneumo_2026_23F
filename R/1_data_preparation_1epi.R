@@ -1,7 +1,7 @@
 library(tidyverse)
 
 # load monocle data
-mon <- read.csv("raw_data/monocle-metadata.csv") %>% 
+mon <- read.csv("raw_data/monocle-metadata_GPSC14.csv") %>% 
   dplyr::transmute(
     id = Lane_id,
     
@@ -44,13 +44,27 @@ mon <- read.csv("raw_data/monocle-metadata.csv") %>%
     Pipeline_version = Pipeline_version,
     In_silico_ST = In_silico_ST,
     GPSC = as.character(GPSC),
-    In_silico_serotype = In_silico_serotype,
+    # adjust 6E(6B) to 6B (Steph's e-mail on 8 July 2026)
+    In_silico_serotype = ifelse(In_silico_serotype == "6E(6B)", "6B",
+                                In_silico_serotype
+    ),
     
     # vaccines (23F is not included in PCV-21 alt)
     Vaccine_period = stringr::str_to_title(stringr::str_to_lower(Vaccine_period)),
     Introduction_year = Introduction_year,
     PCV_type = PCV_type
     
+  ) %>% 
+  
+  # adjust clonal complex (CC) (Steph's e-mail on 8 July 2026)
+  dplyr::left_join(
+    read.csv("raw_data/monocle-metadata_GPSC14_MLST.csv") %>% 
+      dplyr::select(Lane_id,
+                    13:(ncol(.)-1)
+      ) %>% 
+      dplyr::mutate(across(everything(), as.character))
+    ,
+    by = c("id" = "Lane_id")
   ) %>% 
   glimpse()
 
@@ -253,6 +267,16 @@ df_epi_gen_pneumo_14 <- read.csv("raw_data/genData_pneumo_with_epiData_with_fina
         area == "Sumbawa" ~ "PCV13",
       TRUE ~ NA
       ),
+    
+    # adjust data for clonal complex (CC) (Steph's e-mail on 8 July 2026)
+    aroE = workWGS_MLST_pw_aroe,
+    gdh = workWGS_MLST_pw_gdh,
+    gki = workWGS_MLST_pw_gki,
+    recP = workWGS_MLST_pw_recp,
+    spi = workWGS_MLST_pw_spi,
+    xpt = workWGS_MLST_pw_xpt,
+    ddl = workWGS_MLST_pw_ddl
+    
     ) %>%
   dplyr::filter(GPSC == "14") %>% 
   glimpse()
@@ -261,10 +285,38 @@ df_epi_gen_pneumo_14 <- read.csv("raw_data/genData_pneumo_with_epiData_with_fina
 combine_gpsc14 <- dplyr::bind_rows(
   mon, df_epi_gen_pneumo_14
 ) %>% 
+  
+  # combine CC data based on goeBURST output (SLV)
+  dplyr::left_join(
+    read.csv("raw_data/phyloviz_goeBURST_output_table.csv") %>% 
+      dplyr::mutate(ST = as.character(ST),
+                    CC = as.character(CC)
+                    )
+    ,
+    by = c("In_silico_ST" = "ST")
+  ) %>% 
   glimpse()
 
 write.csv(combine_gpsc14, "inputs/all_gpsc14_data.csv",
           row.names = FALSE)
+
+# generate tsv for PHYLOViZ input
+# write.table(combine_gpsc14 %>% 
+#               dplyr::select(In_silico_ST,
+#                             19:(ncol(.))) %>% 
+#               dplyr::mutate(
+#                 across(everything(),
+#                        ~ if_else(str_detect(.x, "\\*|\\(|\\-|e"), "new",
+#                                  .x))
+#                 ),
+#             "inputs/all_gpsc14_data_MLST.tsv",
+#             sep = "\t",
+#             row.names = FALSE,
+#             col.names = TRUE,
+#             quote = FALSE
+#   
+# )
+
 
 # analyse NT from Salma (including setting up NT priority from 636 subtree) ####
 nt_gps <- readxl::read_excel("raw_data/Result_NT_GPS.xlsx") %>% 
