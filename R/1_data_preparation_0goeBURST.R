@@ -1,29 +1,49 @@
-library(stringr)
-library(dplyr)
-library(readr)
+library(tidyverse)
 
 x <- readLines("raw_data/phyloviz_goeBURST_output.txt")
 # annoying R dimension requirement
-cc <- c()
-st <- c()
-rdimension_req <- NA
-for(i in seq_along(x)){
+current_cluster <- NULL
+sts <- character()
+founders <- character()
+out <- list()
+
+extract_founder <- function() {
+  if (length(sts) == 0) return()
   
-  if(stringr::str_detect(x[i], "^CC")){
-    rdimension_req <- stringr::str_extract(x[i], "\\d+")
+  cc_name <- paste0("CC", min(as.integer(founders)))
+  
+  out[[length(out)+1]] <<- tibble(
+    ST = sts,
+    CC = cc_name
+  )
+}
+
+for(line in x){
+  
+  if(stringr::str_detect(line, "^CC\\s+\\d+")){
+    extract_founder()
+    
+    current_cluster <- stringr::str_extract(line,"\\d+")
+    sts <- character()
+    founders <- character()
+    next
   }
   
-  if(stringr::str_detect(x[i], "^ST")){
-    st <- c(st,
-            stringr::str_extract(x[i], "(?<=ST )\\d+"))
-    cc <- c(cc,rdimension_req)
+  if(stringr::str_detect(line, "^ST\\s*\\d+")){
+    st <- stringr::str_extract(line, "(?<=ST )\\d+")
+    # cc <- c(cc,rdimension_req)
+    sts <- c(sts,st)
+    
+    if(str_detect(line,"\\*$")){
+      founders <- c(founders,st)
+    }
   }
 }
 
-goeresult <- tibble(
-  ST = st,
-  CC = cc
-)
+extract_founder()
+
+goeresult <- dplyr::bind_rows(out) %>% 
+  glimpse()
 
 write.csv(goeresult, "raw_data/phyloviz_goeBURST_output_table.csv",
           row.names = FALSE)

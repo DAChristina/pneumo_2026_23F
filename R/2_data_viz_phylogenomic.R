@@ -12,11 +12,17 @@ combine_gpsc14 <- read.csv("inputs/all_gpsc14_data.csv") %>%
                   stringr::str_detect(Vaccine_period, "Post") ~ "Post-PCV",
                   TRUE ~ "Unknown"
                   ),
-                # fix MLST & Age group
+                # fix MLST, CC & Age group
                 In_silico_ST = case_when(
                   stringr::str_detect(In_silico_ST, "-") |
                     stringr::str_detect(In_silico_ST, stringr::fixed("*")) ~ "Not recognisable",
                   TRUE ~ In_silico_ST
+                ),
+                CC = case_when(
+                  is.na(CC) |
+                    stringr::str_detect(CC, "-") |
+                    stringr::str_detect(CC, stringr::fixed("*")) ~ "Not recognisable",
+                  TRUE ~ as.character(CC)
                   ),
                 Age_group = ifelse(is.na(Age_group), "Unknown", Age_group)
                 
@@ -57,18 +63,18 @@ prop_serotype <- combine_gpsc14 %>%
   ) %>% 
   glimpse()
 
-prop_st <- combine_gpsc14 %>% 
-  dplyr::group_by(In_silico_ST) %>% 
-  dplyr::summarise(n_st = n(), .groups = "drop") %>% 
+prop_CC <- combine_gpsc14 %>% 
+  dplyr::group_by(CC) %>% 
+  dplyr::summarise(n_CC = n(), .groups = "drop") %>% 
   dplyr::mutate(
-    percent_st = round(n_st/nrow(combine_gpsc14)*100, 1)
+    percent_CC = round(n_CC/nrow(combine_gpsc14)*100, 1)
   ) %>% 
-  dplyr::arrange(desc(percent_st)) %>% 
+  dplyr::arrange(desc(percent_CC)) %>% 
   dplyr::mutate(
-    # filter_st = ifelse(percent_st > 1, 1, 0),
-    In_silico_st_simplified = ifelse(percent_st > 3,
-                                     In_silico_ST,
-                                     "Other"),
+    # filter_CC = ifelse(percent_CC > 1, 1, 0),
+    CC_simplified = CC #ifelse(percent_CC > 1,
+                                     #CC,
+                                     #"Other"),
   ) %>% 
   glimpse()
 
@@ -80,8 +86,8 @@ prop_countries <- combine_gpsc14 %>%
   ) %>% 
   dplyr::arrange(desc(percent_country)) %>% 
   dplyr::mutate(
-    # filter_st = ifelse(percent_st > 1, 1, 0),
-    Country_simplified = ifelse(percent_country > 2,
+    # filter_CC = ifelse(percent_CC > 1, 1, 0),
+    Country_simplified = ifelse(percent_country > 1.5, # include Malawi
                                 Country,
                                 "Other"),
   ) %>%
@@ -96,10 +102,10 @@ combine_gpsc14_simplified <- combine_gpsc14 %>%
     by = "In_silico_serotype"
   ) %>% 
   dplyr::left_join(
-    prop_st %>% 
-      dplyr::select(contains("In_silico_"))
+    prop_CC %>% 
+      dplyr::select(c(CC, CC_simplified))
     ,
-    by = "In_silico_ST"
+    by = "CC"
   ) %>% 
   dplyr::left_join(
     prop_countries %>% 
@@ -116,9 +122,12 @@ combine_gpsc14_simplified <- combine_gpsc14 %>%
   dplyr::transmute(
     id = tre_gubbins.tip.label,
     Continent = Continent,
-    Country = Country_simplified,
+    
+    # adjust Indonesia on top
+    Country = ifelse(Country_simplified == "Indonesia", " Indonesia",
+                     Country_simplified),
     Serotype = In_silico_serotype_simplified,
-    MLST = In_silico_st_simplified,
+    CC = CC_simplified,
     Vaccine = case_when(
       stringr::str_detect(Vaccine_period, "Pre")  ~ "Pre-PCV",
       stringr::str_detect(Vaccine_period, "Post") ~ "Post-PCV",
@@ -132,6 +141,13 @@ rownames(combine_gpsc14_simplified) <- tre_gubbins$tip.label
 write.csv(combine_gpsc14_simplified %>% 
             dplyr::select(-id),
           "inputs/microreact_id_adjusted_all_gpsc14_data_simplified.csv")
+
+write.table(combine_gpsc14_simplified,
+            "inputs/microreact_id_adjusted_all_gpsc14_data_simplified.tsv",
+            sep = "\t",
+            row.names = FALSE,
+            col.names = TRUE,
+            quote = FALSE)
 
 ape::write.tree(tre_gubbins, "inputs/microreact_id_adjusted_gpsc14_.final_tree.tre")
 
@@ -192,7 +208,7 @@ prop_calc1 <- df_subtree %>%
   dplyr::group_by(node,
                   Country,
                   simplified_Serotype,
-                  # simplified_MLST
+                  # simplified_CC
   ) %>% 
   dplyr::summarise(n_all = n(), .groups = "drop") %>% 
   dplyr::left_join(
@@ -214,7 +230,7 @@ prop_calc2 <- df_subtree %>%
   dplyr::group_by(node,
                   Country,
                   # simplified_Serotype,
-                  simplified_MLST
+                  simplified_CC
   ) %>% 
   dplyr::summarise(n_all = n(), .groups = "drop") %>% 
   dplyr::left_join(
@@ -295,16 +311,16 @@ tree_gen_gubbins <- show_gubbins %<+%
     legend.text=element_text(size=9),
     legend.spacing.y = unit(0.02, "cm")
   ) +
-  # MLST
+  # CC
   ggnewscale::new_scale_fill() +
   ggtreeExtra::geom_fruit(
     geom=geom_tile,
-    mapping=aes(fill=combine_gpsc14$In_silico_ST),
+    mapping=aes(fill=combine_gpsc14$CC),
     width=10
     # offset=0.02
   ) +
   scale_fill_viridis_d(
-    name = "MLST",
+    name = "Clonal complex",
     option = "C",
     direction = -1,
     guide = guide_legend(keywidth = 0.3, keyheight = 0.3,
@@ -315,7 +331,7 @@ tree_gen_gubbins <- show_gubbins %<+%
     legend.text=element_text(size=9),
     legend.spacing.y = unit(0.02, "cm")
   ) +
-  # area (vaccination status)
+  # Vaccination status
   ggnewscale::new_scale_fill() +
   ggtreeExtra::geom_fruit(
     geom=geom_tile,

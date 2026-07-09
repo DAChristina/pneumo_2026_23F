@@ -378,7 +378,7 @@ write.csv(nt_gps, "report/nontypeables_analyses_summarised_for_harry_v2.csv",
 files <- list.files("raw_data/subtree_636_nontypeables/",
                     pattern = "\\.fasta$",
                     full.names = FALSE
-) |>
+) |>  
   tibble::tibble(file = _) %>% 
   dplyr::mutate(file = gsub(".fasta", "", file)) %>% 
   glimpse()
