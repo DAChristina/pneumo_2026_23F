@@ -1,6 +1,7 @@
 library(tidyverse)
 library(ggtree)
 library(ggtreeExtra)
+library(ggrepel)
 # source("global/fun.R")
 
 # reload all designated df & tree (renamed)
@@ -30,7 +31,14 @@ collapsed_tree <- tree %>%
   collapse(node = 676) %>% 
   collapse(node = 863)
 
-pointed_tree <- collapsed_tree +
+# label in 606 & 672
+node_anno <- tibble(
+  node = c(606, 672),
+  labels = c("Clade I", "Clade II")
+)
+
+pointed_tree <- collapsed_tree %<+% 
+  node_anno +
   geom_point2(aes(subset = (node == 447)),
               shape = 19,
               size = 5,
@@ -46,7 +54,20 @@ pointed_tree <- collapsed_tree +
   geom_point2(aes(subset = (node == 863)),
               shape = 19,
               size = 5,
-              color = "black")
+              color = "black") +
+  # label in 606 & 672
+  geom_hilight(node=606, fill="pink", alpha=0.5) +
+  geom_hilight(node=672, fill="pink", alpha=0.5) +
+  geom_text(
+    aes(x = branch,
+        label = labels),
+    size  = 3,
+    color = "darkred",
+    vjust = -0.5,
+    hjust = 0.8,
+    fontface  = "bold",
+    na.rm = TRUE
+  )
 pointed_tree
 
 
@@ -59,26 +80,6 @@ show_collapsed <- pointed_tree %<+%
     legend.text=element_text(size=9),
     legend.spacing.y = unit(0.02, "cm")
   ) +
-  geom_hilight(node=606, fill="pink", alpha=0.5) +
-  geom_hilight(node=672, fill="pink", alpha=0.5) +
-  # geom_cladelab(
-  #   data = data.frame(
-  #     node = 638,
-  #     name = "23F\n(GPSC14-ST242)\ndominant"
-  #   ),
-  #   mapping = aes(
-  #     node = node,
-  #     label = name
-  #   ),
-  #   align = TRUE,
-  #   offset = .23,
-  #   offset.text = .045,
-  #   hjust = "center",
-  #   barsize = .2,
-  #   fontsize = 3,
-  #   angle = "auto",
-  #   horizontal = FALSE
-  # ) +
   theme(
     legend.position = "none",
     # plot.margin = grid::unit(c(-15, -15, -15, -15), "mm")
@@ -185,7 +186,7 @@ tree_gen_gubbins <- show_collapsed %<+%
   ggnewscale::new_scale_fill() +
   ggtreeExtra::geom_fruit(
     geom=geom_tile,
-    mapping=aes(fill=combine_gpsc14_simplified$Country),
+    mapping=aes(fill=combine_gpsc14$Country),
     width=7
     # offset=0.02,
     # axis.params = list(

@@ -207,6 +207,10 @@ df_subtree <- dplyr::bind_rows(
   # view() %>%
   glimpse()
 
+write.csv(df_subtree,
+          "inputs/all_gpsc14_major_subtree.csv",
+          row.names = FALSE)
+
 # proportion calculation per node
 prop_calc1 <- df_subtree %>% 
   dplyr::group_by(node,
