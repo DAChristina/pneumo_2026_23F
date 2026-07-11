@@ -160,7 +160,11 @@ ggtree(tre_gubbins) +
 
 # analyse subtree:
 subtree1 <- ape::extract.clade(tre_gubbins,
-                              node = 446)
+                              node = 650)
+ggtree(subtree1) + 
+  geom_tiplab(size = 2) +
+  geom_label2(aes(subset=!isTip, label=node),
+              size=2, color="darkred", alpha=0.5)
 
 df_subtree <- dplyr::bind_rows(
   # 719 ST2059-dominant (South Africa)
@@ -170,13 +174,13 @@ df_subtree <- dplyr::bind_rows(
   data.frame(node = 844,
              selected_id  = ape::extract.clade(tre_gubbins, 844)$tip.label),
   # 605 (mix country)/ split to 606 clade (IDN) & 628 (mixed countries)
-  data.frame(node = 606,
-             selected_id  = ape::extract.clade(tre_gubbins, 606)$tip.label),
-  data.frame(node = 628,
-             selected_id  = ape::extract.clade(tre_gubbins, 628)$tip.label),
-  # 839 test IDN-Cambodia clade
-  data.frame(node = 839,
-             selected_id  = ape::extract.clade(tre_gubbins, 839)$tip.label),
+  data.frame(node = 605,
+             selected_id  = ape::extract.clade(tre_gubbins, 605)$tip.label),
+  # data.frame(node = 628,
+  #            selected_id  = ape::extract.clade(tre_gubbins, 628)$tip.label),
+  # 651 test IDN-Cambodia clade
+  data.frame(node = 651,
+             selected_id  = ape::extract.clade(tre_gubbins, 651)$tip.label),
   # 863 (peruvian clade)
   data.frame(node = 863,
              selected_id  = ape::extract.clade(tre_gubbins, 863)$tip.label),
@@ -375,7 +379,7 @@ tree_gen_gubbins <- show_gubbins %<+%
   ggnewscale::new_scale_fill() +
   ggtreeExtra::geom_fruit(
     geom=geom_tile,
-    mapping=aes(fill=combine_gpsc14$Country),
+    mapping=aes(fill=combine_gpsc14_simplified$Country),
     width=10
     # offset=0.02
   ) +
