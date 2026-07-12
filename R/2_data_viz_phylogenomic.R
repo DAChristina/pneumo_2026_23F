@@ -87,7 +87,7 @@ prop_countries <- combine_gpsc14 %>%
   dplyr::arrange(desc(percent_country)) %>% 
   dplyr::mutate(
     # filter_CC = ifelse(percent_CC > 1, 1, 0),
-    Country_simplified = ifelse(percent_country > 1.5, # include Malawi
+    Country_simplified = ifelse(percent_country >= 2, # include Thailand
                                 Country,
                                 "Other"),
   ) %>%

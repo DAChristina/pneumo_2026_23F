@@ -4,10 +4,11 @@ tree <- ggtree(tre_gubbins) +
   geom_label2(aes(subset=!isTip, label=node),
               size=2, color="darkred", alpha=0.5)
 
-collapsed_tree <- tre_gubbins %>% 
+collapsed_tree <- tree %>% 
   collapse(node = 447) %>% 
-  collapse(node = 628) %>% 
+  collapse(node = 644) %>%
   collapse(node = 676) %>% 
+  collapse(node = 861) %>%
   collapse(node = 863)
 
 # analyse subtree:
@@ -21,10 +22,12 @@ ggtree(subtree1) +
 df_subtree_collapsed <- dplyr::bind_rows(
   data.frame(node = 447,
              selected_id  = ape::extract.clade(tre_gubbins, 447)$tip.label),
-  data.frame(node = 628,
-             selected_id  = ape::extract.clade(tre_gubbins, 628)$tip.label),
+  data.frame(node = 644,
+             selected_id  = ape::extract.clade(tre_gubbins, 644)$tip.label),
   data.frame(node = 676,
              selected_id  = ape::extract.clade(tre_gubbins, 676)$tip.label),
+  data.frame(node = 861,
+             selected_id  = ape::extract.clade(tre_gubbins, 861)$tip.label),
   data.frame(node = 863,
              selected_id  = ape::extract.clade(tre_gubbins, 863)$tip.label),
 ) %>% 

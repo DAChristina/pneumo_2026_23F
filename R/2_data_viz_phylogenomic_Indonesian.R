@@ -23,12 +23,13 @@ ggtree(tre_gubbins) +
 tree <- ggtree(tre_gubbins) + 
   geom_tiplab(size = 2) #+
   # geom_label2(aes(subset=!isTip, label=node),
-  #             size=2, color="darkred", alpha=0.5)
+  #             size=3, color="darkred", alpha=0.5)
 
 collapsed_tree <- tree %>% 
   collapse(node = 447) %>% 
-  collapse(node = 628) %>% 
+  collapse(node = 644) %>%
   collapse(node = 676) %>% 
+  collapse(node = 861) %>%
   collapse(node = 863)
 
 # label in 606 & 672
@@ -43,11 +44,15 @@ pointed_tree <- collapsed_tree %<+%
               shape = 19,
               size = 5,
               color = "black") +
-  geom_point2(aes(subset = (node == 628)),
+  geom_point2(aes(subset = (node == 644)),
               shape = 19,
               size = 5,
               color = "black") +
   geom_point2(aes(subset = (node == 676)),
+              shape = 19,
+              size = 5,
+              color = "black") +
+  geom_point2(aes(subset = (node == 861)),
               shape = 19,
               size = 5,
               color = "black") +
