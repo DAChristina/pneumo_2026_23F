@@ -45,8 +45,14 @@ mon <- read.csv("raw_data/monocle-metadata_GPSC14.csv") %>%
     In_silico_ST = In_silico_ST,
     GPSC = as.character(GPSC),
     # adjust 6E(6B) to 6B (Steph's e-mail on 8 July 2026)
-    In_silico_serotype = ifelse(In_silico_serotype == "6E(6B)", "6B",
-                                In_silico_serotype
+    # compile 19A & 19F genomic variants (Nick's e-mail on 14 July 2026)
+    In_silico_serotype = case_when(
+      In_silico_serotype == "6E(6B)" ~ "6B",
+      
+      stringr::str_detect(In_silico_serotype, "19F(19AF)") ~ "19F(19AF)",
+      stringr::str_detect(In_silico_serotype, "^19F(?!\\(19AF)") ~ "19F",
+      stringr::str_detect(In_silico_serotype, "^19A") ~ "19A",
+      TRUE ~ In_silico_serotype
     ),
     
     # vaccines (23F is not included in PCV-21 alt)
